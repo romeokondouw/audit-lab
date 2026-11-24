@@ -216,7 +216,7 @@
                         <div class="space-y-2">
                             <h2 class="text-xl md:text-2xl font-extrabold text-white">SIT-AI (Sistem Informasi Tracking Audit Internal)</h2>
                             <p class="text-xs text-slate-400 italic bg-slate-950/80 p-2.5 rounded-xl border border-slate-800/80 inline-block">
-                                "Kesempurnaan hanya milik sang pencipta tapi takdir akan berpihak kepada sang pejuang"
+                                "Jangan pernah sepelekan tai karna tanpanya mencintai tidak akan pernah ada"
                             </p>
                         </div>
                         <img src="logo.jpg" onerror="this.src='https://placehold.co/100x100/0f172a/22d3ee?text=SIT-AI'" alt="Logo SIT-AI" class="w-16 h-16 rounded-2xl border border-slate-700 object-cover hidden sm:block">
@@ -814,6 +814,12 @@
         }
 
         function handlePastCycleFileUpload(id, cycleIndex, event) {
+            if (!currentUser || currentUser.role !== 'ADMIN') {
+                alert('Akses Ditolak: Hanya ADMIN yang diizinkan mengunggah ulang file bukti perbaikan.');
+                event.target.value = '';
+                return;
+            }
+
             const file = event.target.files[0];
             if (!file) return;
 
@@ -1933,6 +1939,7 @@
             }).join('');
 
             document.getElementById('list-responses').innerHTML = visibleFindings.map(f => {
+                const isAdmin = currentUser.role === 'ADMIN';
                 const isAuditee = currentUser.role === 'AUDITEE';
                 const isAuditorOrAdmin = currentUser.role === 'AUDITOR' || currentUser.role === 'ADMIN';
                 const isClosed = f.status === 'Sesuai';
@@ -2036,7 +2043,7 @@
                                                 <i class="fa-solid fa-paperclip"></i> Lihat Bukti VTP ${pc.cycleNum} (${pc.buktiName || 'Lampiran'})
                                             </button>
                                             ${pcBuktiTgl ? `<span class="text-[10px] text-slate-500">(Diunggah: ${pcBuktiTgl})</span>` : ''}
-                                            ${(isAuditee || currentUser.role === 'ADMIN') ? `
+                                            ${isAdmin ? `
                                                 <label class="cursor-pointer bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-md text-[10px] font-bold inline-flex items-center gap-1 transition ml-1">
                                                     <i class="fa-solid fa-upload"></i><span>Unggah Ulang Bukti VTP ${pc.cycleNum}</span>
                                                     <input type="file" onchange="handlePastCycleFileUpload('${f.id}', ${pIdx}, event)" accept=".pdf,image/*,.doc,.docx" class="hidden">
@@ -2044,7 +2051,7 @@
                                             ` : ''}
                                         </div>
                                     ` : `
-                                        ${(isAuditee || currentUser.role === 'ADMIN') ? `
+                                        ${isAdmin ? `
                                             <div class="pt-1">
                                                 <label class="cursor-pointer bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-md text-[10px] font-bold inline-flex items-center gap-1 transition">
                                                     <i class="fa-solid fa-upload"></i><span>Unggah Bukti VTP ${pc.cycleNum}</span>
@@ -2149,7 +2156,7 @@
                                         <i class="fa-solid fa-file-lines"></i> <span>Lihat File Bukti (${currentCycle.buktiName || 'Bukti'})</span>
                                     </button>
                                     ${buktiUpStr ? `<span class="text-[11px] text-slate-400"><i class="fa-regular fa-clock text-indigo-400 mr-1"></i>Diunggah: ${buktiUpStr}</span>` : ''}
-                                    ${(isAuditee || currentUser.role === 'ADMIN') ? `
+                                    ${isAdmin ? `
                                         <label class="cursor-pointer bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition">
                                             <i class="fa-solid fa-upload"></i><span>Unggah Ulang Bukti</span>
                                             <input type="file" onchange="handlePastCycleFileUpload('${f.id}', ${currentIdx}, event)" accept=".pdf,image/*,.doc,.docx" class="hidden">
@@ -2157,7 +2164,7 @@
                                     ` : ''}
                                 ` : `
                                     <span class="text-slate-500 italic">Belum ada file bukti diunggah pada putaran ini</span>
-                                    ${(isAuditee || currentUser.role === 'ADMIN') && isClosed ? `
+                                    ${isAdmin && isClosed ? `
                                         <label class="cursor-pointer bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition">
                                             <i class="fa-solid fa-upload"></i><span>Unggah Bukti</span>
                                             <input type="file" onchange="handlePastCycleFileUpload('${f.id}', ${currentIdx}, event)" accept=".pdf,image/*,.doc,.docx" class="hidden">
