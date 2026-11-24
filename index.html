@@ -216,7 +216,7 @@
                         <div class="space-y-2">
                             <h2 class="text-xl md:text-2xl font-extrabold text-white">SIT-AI (Sistem Informasi Tracking Audit Internal)</h2>
                             <p class="text-xs text-slate-400 italic bg-slate-950/80 p-2.5 rounded-xl border border-slate-800/80 inline-block">
-                                "Jangan pernah sepelekan tai karna tanpanya mencintai tidak akan pernah ada"
+                                "Jangan sepelekan tai karna tanpanya mencintai tak akan pernah ada"
                             </p>
                         </div>
                         <img src="logo.jpg" onerror="this.src='https://placehold.co/100x100/0f172a/22d3ee?text=SIT-AI'" alt="Logo SIT-AI" class="w-16 h-16 rounded-2xl border border-slate-700 object-cover hidden sm:block">
@@ -1109,11 +1109,15 @@
                     const auditorPhone = f.auditorPhone || (auditorUser ? auditorUser.phone : '');
                     const auditorName = f.createdBy || f.auditor || 'Auditor';
                     if (auditorPhone) {
-                        const pesanKeAuditor = `Halo Auditor (${auditorName}),\n\nSaya *${currentUser.name}* (Auditee) telah melengkapi jawaban & tindakan perbaikan untuk:\n• *Acuan:* ${f.acuan}\n• *Putaran:* VTP ${currentCycle.cycleNum}\n• *Waktu Kirim:* ${formatDateTimeID(nowIso)}\n\nMohon dapat dilakukan verifikasi VTP ${currentCycle.cycleNum} pada aplikasi SIT-AI.`;
+                        const pesanKeAuditor = `Salam Hangat Auditor (${auditorName}),\n\nSaya ${currentUser.name} (Auditee) telah melengkapi jawaban & tindakan perbaikan untuk:\n- Acuan: ${f.acuan}\n- Putaran: VTP ${currentCycle.cycleNum}\n- Waktu Kirim: ${formatDateTimeID(nowIso)}\n\nMohon dapat dilakukan verifikasi VTP ${currentCycle.cycleNum} pada aplikasi SIT-AI (https://link.bmkg.go.id/sitailk435)`;
                         sendWA(auditorPhone, pesanKeAuditor);
                     }
                 } else {
                     alert(`Catatan Verifikasi VTP ${currentCycle.cycleNum} berhasil disimpan ke Firebase!`);
+                    if (f.auditeePhone) {
+                        const pesanKeAuditeePending = `Salam Hangat Auditee (${f.auditee}),\n\nSaya ${currentUser.name} (Auditor) telah memverifikasi jawaban & tindakan perbaikan untuk:\n- Acuan: ${f.acuan}\n- Putaran: VTP ${currentCycle.cycleNum}\n- Status : Pending\n- Waktu Kirim: ${formatDateTimeID(nowIso)}\n\nMohon dapat dilakukan perbaikan VTP ${currentCycle.cycleNum} pada aplikasi SIT-AI (https://link.bmkg.go.id/sitailk435)`;
+                        sendWA(f.auditeePhone, pesanKeAuditeePending);
+                    }
                 }
             } catch (err) {
                 alert('Gagal menyimpan respon: ' + err.message);
@@ -1194,7 +1198,8 @@
                 alert(`Putaran VTP ${nextNum} telah dibuka. Silakan infokan ke Auditee (${f.auditee}) untuk mengirim jawaban perbaikan ulang.`);
 
                 if (f.auditeePhone) {
-                    const msgWA = `Halo ${f.auditee},\n\nHasil evaluasi VTP ${currentCycle.cycleNum} untuk temuan *${f.acuan}* dinyatakan *Belum Sesuai*.\n\nSilakan masuk ke SIT-AI untuk menjawab dan mengirimkan revisi tindakan perbaikan pada putaran *VTP ${nextNum}*.`;
+                    const verifierName = currentUser ? currentUser.name : (f.createdBy || f.auditor || 'Auditor');
+                    const msgWA = `Salam Hangat Auditee (${f.auditee}),\n\nSaya ${verifierName} (Auditor) telah memverifikasi jawaban & tindakan perbaikan untuk:\n- Acuan: ${f.acuan}\n- Putaran: VTP ${nextNum}\n- Status : Pending\n- Waktu Kirim: ${formatDateTimeID(nowIso)}\n\nMohon dapat dilakukan perbaikan VTP ${nextNum} pada aplikasi SIT-AI (https://link.bmkg.go.id/sitailk435)`;
                     sendWA(f.auditeePhone, msgWA);
                 }
             } catch (err) {
@@ -1234,7 +1239,11 @@
             const auditorName = f.createdBy || f.auditor || 'Auditor';
             const targetPhone = isAuditee ? auditorPhone : f.auditeePhone;
             const targetLabel = isAuditee ? `Kirim WA ke Auditor (${auditorName})` : `Kirim WA ke Auditee (${f.auditee})`;
-            const defaultMsg = `Pemberitahuan Audit SIT-AI: Status & Catatan VTP ${currentCycle.cycleNum} untuk temuan ${f.acuan} telah diperbarui.`;
+            const nowStr = formatDateTimeID(new Date().toISOString());
+            const rawMsg = isAuditee
+                ? `Salam Hangat Auditor (${auditorName}),\n\nSaya ${currentUser.name} (Auditee) telah melengkapi jawaban & tindakan perbaikan untuk:\n- Acuan: ${f.acuan}\n- Putaran: VTP ${currentCycle.cycleNum}\n- Waktu Kirim: ${nowStr}\n\nMohon dapat dilakukan verifikasi VTP ${currentCycle.cycleNum} pada aplikasi SIT-AI (https://link.bmkg.go.id/sitailk435)`
+                : `Salam Hangat Auditee (${f.auditee}),\n\nSaya ${currentUser.name} (Auditor) telah memverifikasi jawaban & tindakan perbaikan untuk:\n- Acuan: ${f.acuan}\n- Putaran: VTP ${currentCycle.cycleNum}\n- Status : Pending\n- Waktu Kirim: ${nowStr}\n\nMohon dapat dilakukan perbaikan VTP ${currentCycle.cycleNum} pada aplikasi SIT-AI (https://link.bmkg.go.id/sitailk435)`;
+            const encodedDefaultMsg = encodeURIComponent(rawMsg);
 
             let closeBtnHtml = '';
             if (canClose) {
@@ -1264,7 +1273,7 @@
 
             container.innerHTML = `
                 ${closeBtnHtml}
-                <button onclick="sendWA('${targetPhone}', '${defaultMsg}')" class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs px-3.5 py-2 rounded-xl font-bold flex items-center space-x-1.5 transition">
+                <button onclick="sendWA('${targetPhone}', decodeURIComponent('${encodedDefaultMsg}'))" class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs px-3.5 py-2 rounded-xl font-bold flex items-center space-x-1.5 transition">
                     <i class="fa-brands fa-whatsapp"></i><span>${targetLabel}</span>
                 </button>
             `;
@@ -1335,6 +1344,12 @@
                             bukti: '',
                             cycles: cleanCycles
                         });
+
+                        if (f.auditeePhone) {
+                            const verifierName = currentUser ? currentUser.name : (f.createdBy || f.auditor || 'Auditor');
+                            const pesanKeAuditeeClosed = `Salam Hangat Auditee (${f.auditee}),\n\nSaya ${verifierName} (Auditor) telah memverifikasi jawaban & tindakan perbaikan untuk:\n- Acuan: ${f.acuan}\n- Status : Closed\n- Waktu Kirim: ${formatDateTimeID(nowIso)}\n\nTerima Kasih atas kerjasamanya`;
+                            sendWA(f.auditeePhone, pesanKeAuditeeClosed);
+                        }
                     } else {
                         cleanCycles[currentIdx].verifResult = 'Belum Sesuai';
                         cleanCycles[currentIdx].closedAt = '';
@@ -1961,9 +1976,13 @@
 
                 const targetPhone = isAuditee ? auditorPhone : f.auditeePhone;
                 const targetLabel = isAuditee ? `Kirim WA ke Auditor (${auditorName})` : `Kirim WA ke Auditee (${f.auditee})`;
-                const defaultMsg = isAuditee
-                    ? `Halo Auditor (${auditorName}), saya ${currentUser.name} telah mengisi jawaban perbaikan (VTP ${currentCycle.cycleNum}) untuk temuan ${f.acuan}. Mohon dapat diverifikasi.`
-                    : `Pemberitahuan Audit SIT-AI: Status & Catatan VTP ${currentCycle.cycleNum} untuk temuan ${f.acuan} telah diperbarui. Status saat ini: ${f.status}.`;
+                const nowWaStr = formatDateTimeID(new Date().toISOString());
+                const rawDefaultMsg = isAuditee
+                    ? `Salam Hangat Auditor (${auditorName}),\n\nSaya ${currentUser.name} (Auditee) telah melengkapi jawaban & tindakan perbaikan untuk:\n- Acuan: ${f.acuan}\n- Putaran: VTP ${currentCycle.cycleNum}\n- Waktu Kirim: ${nowWaStr}\n\nMohon dapat dilakukan verifikasi VTP ${currentCycle.cycleNum} pada aplikasi SIT-AI (https://link.bmkg.go.id/sitailk435)`
+                    : (isClosed
+                        ? `Salam Hangat Auditee (${f.auditee}),\n\nSaya ${currentUser.name} (Auditor) telah memverifikasi jawaban & tindakan perbaikan untuk:\n- Acuan: ${f.acuan}\n- Status : Closed\n- Waktu Kirim: ${nowWaStr}\n\nTerima Kasih atas kerjasamanya`
+                        : `Salam Hangat Auditee (${f.auditee}),\n\nSaya ${currentUser.name} (Auditor) telah memverifikasi jawaban & tindakan perbaikan untuk:\n- Acuan: ${f.acuan}\n- Putaran: VTP ${currentCycle.cycleNum}\n- Status : Pending\n- Waktu Kirim: ${nowWaStr}\n\nMohon dapat dilakukan perbaikan VTP ${currentCycle.cycleNum} pada aplikasi SIT-AI (https://link.bmkg.go.id/sitailk435)`);
+                const encodedDefaultMsg = encodeURIComponent(rawDefaultMsg);
 
                 const isAuditeeComplete = Boolean(
                     currentCycle.akar && currentCycle.akar.trim() &&
@@ -2247,7 +2266,7 @@
                         <div id="close-btn-container-${f.id}" class="flex flex-wrap items-center gap-2">
                             ${closeActionButtonHtml}
 
-                            <button onclick="sendWA('${targetPhone}', '${defaultMsg}')" class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs px-3.5 py-2 rounded-xl font-bold flex items-center space-x-1.5 transition">
+                            <button onclick="sendWA('${targetPhone}', decodeURIComponent('${encodedDefaultMsg}'))" class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs px-3.5 py-2 rounded-xl font-bold flex items-center space-x-1.5 transition">
                                 <i class="fa-brands fa-whatsapp"></i><span>${targetLabel}</span>
                             </button>
                         </div>
